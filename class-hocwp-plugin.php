@@ -1,6 +1,6 @@
 <?php
 /*
- * Version: 1.0.4
+ * Version: 1.0.6
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -583,17 +583,19 @@ if ( ! class_exists( 'HOCWP_Plugin_Core' ) ) {
 						$this->options_page_callback = array( $this, 'options_page_callback' );
 					}
 
-					if ( $this->new_menu ) {
-						add_menu_page( $page_title, $menu_title, $this->capability, $this->option_name, $this->options_page_callback, '', 99 );
+					if ( ! empty( $this->option_name ) ) {
+						if ( $this->new_menu ) {
+							add_menu_page( $page_title, $menu_title, $this->capability, $this->option_name, $this->options_page_callback, '', 99 );
 
-						if ( current_user_can( 'manage_options' ) ) {
-							$this->add_submenu_page( $page_title, $menu_title, $this->option_name, $this->options_page_callback );
-						}
-					} else {
-						if ( empty( $this->parent_slug ) ) {
-							add_options_page( $page_title, $menu_title, $this->capability, $this->option_name, $this->options_page_callback );
+							if ( current_user_can( 'manage_options' ) ) {
+								$this->add_submenu_page( $page_title, $menu_title, $this->option_name, $this->options_page_callback );
+							}
 						} else {
-							add_submenu_page( $this->parent_slug, $page_title, $menu_title, $this->capability, $this->option_name, $this->options_page_callback );
+							if ( empty( $this->parent_slug ) ) {
+								add_options_page( $page_title, $menu_title, $this->capability, $this->option_name, $this->options_page_callback );
+							} else {
+								add_submenu_page( $this->parent_slug, $page_title, $menu_title, $this->capability, $this->option_name, $this->options_page_callback );
+							}
 						}
 					}
 				}
