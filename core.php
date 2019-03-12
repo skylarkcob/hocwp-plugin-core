@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class WP_Custom_Coupons_Core {
+class Car_Price_Compare_Core {
 	protected static $instance;
 
 	public $require_php_version = '5.6';
@@ -23,9 +23,13 @@ class WP_Custom_Coupons_Core {
 	protected $labels;
 	protected $setting_args;
 	protected $options_page_callback;
+	public $setting_tabs;
+	public $setting_tab;
 
 	public $sub_menu = true;
 	public $menu_icon = 'dashicons-admin-generic';
+
+	public $one_term_taxonomies = array();
 
 	public function is_empty_string( $string ) {
 		return ( is_string( $string ) && empty( $string ) );
@@ -49,6 +53,51 @@ class WP_Custom_Coupons_Core {
 		}
 
 		return $result;
+	}
+
+	public function get_max_upload_size() {
+		$max_upload   = (int) ( ini_get( 'upload_max_filesize' ) );
+		$max_post     = (int) ( ini_get( 'post_max_size' ) );
+		$memory_limit = (int) ( ini_get( 'memory_limit' ) );
+		$upload_mb    = min( $max_upload, $max_post, $memory_limit );
+
+		return $upload_mb;
+	}
+
+	/**
+	 * Notation to numbers.
+	 *
+	 * This function transforms the php.ini notation for numbers (like '2M') to an integer.
+	 *
+	 * @param  string $size Size value.
+	 *
+	 * @return int
+	 */
+	public function let_to_num( $size ) {
+		$size = str_replace( ' ', '', $size );
+		$size = trim( $size );
+
+		$l   = substr( $size, - 1 );
+		$ret = substr( $size, 0, - 1 );
+
+		$byte = 1024;
+
+		switch ( strtoupper( $l ) ) {
+			case 'P':
+				$ret *= $byte;
+			case 'T':
+				$ret *= $byte;
+			case 'G':
+				$ret *= $byte;
+			case 'M':
+				$ret *= $byte;
+			case 'K':
+				$ret *= $byte;
+		}
+
+		unset( $l, $byte );
+
+		return $ret;
 	}
 
 	public function json_string_to_array( $json_string ) {
@@ -151,6 +200,31 @@ class WP_Custom_Coupons_Core {
 		$query = new WP_Term_Query( $args );
 
 		return $query->get_terms();
+	}
+
+	public function term_exists( $value, $taxonomy, $output = ARRAY_A, $by = 'default' ) {
+		if ( 'default' === $by ) {
+			return term_exists( $value );
+		}
+
+		$term = get_term_by( $by, $value, $taxonomy, $output );
+
+		if ( $this->is_positive_number( $term ) ) {
+			$tmp = get_term( $term, $taxonomy );
+
+			if ( ! ( $tmp instanceof WP_Term ) ) {
+				return false;
+			}
+		}
+
+		if ( $term instanceof WP_Term && OBJECT != $output ) {
+			return array(
+				'term_id'          => $term->term_id,
+				'term_taxonomy_id' => $term->term_taxonomy_id
+			);
+		}
+
+		return $term;
 	}
 
 	public function get_terms_by_term( $taxonomy, $args = array() ) {
@@ -754,7 +828,44 @@ class WP_Custom_Coupons_Core {
 			<h1><?php echo esc_html( $headline ); ?></h1>
 			<hr class="wp-header-end">
 			<?php
-			settings_errors();
+			if ( ! isset( $_REQUEST['settings-updated'] ) ) {
+				settings_errors();
+			}
+
+			if ( $this->array_has_value( $this->setting_tabs ) ) {
+				?>
+				<h2 class="nav-tab-wrapper">
+					<?php
+					if ( empty( $this->setting_tab ) ) {
+						reset( $this->setting_tabs );
+						$this->setting_tab = key( $this->setting_tabs );
+					}
+
+					foreach ( $this->setting_tabs as $tab => $data ) {
+						$url = admin_url();
+						$url = add_query_arg( 'page', $this->option_name, $url );
+						$url = add_query_arg( 'tab', $tab, $url );
+
+						$nav_class = 'nav-tab';
+
+						if ( $tab == $this->setting_tab ) {
+							$nav_class .= ' nav-tab-active';
+						}
+
+						$text = $tab;
+
+						if ( isset( $data['text'] ) && ! empty( $data['text'] ) ) {
+							$text = $data['text'];
+						}
+						?>
+						<a href="<?php echo $url; ?>"
+						   class="<?php echo $nav_class; ?>"><?php echo $text; ?></a>
+						<?php
+					}
+					?>
+				</h2>
+				<?php
+			}
 
 			if ( 1 < count( $tabs ) ) {
 				?>
@@ -823,7 +934,11 @@ class WP_Custom_Coupons_Core {
 		}
 
 		if ( ! is_callable( $callback ) ) {
-			$callback = array( $this, 'admin_setting_field_input' );
+			$callback = array( $this, $callback );
+
+			if ( ! is_callable( $callback ) ) {
+				$callback = array( $this, 'admin_setting_field_input' );
+			}
 		}
 
 		add_settings_field( $id, $title, $callback, $this->get_option_name(), $section, $args );
@@ -884,6 +999,43 @@ class WP_Custom_Coupons_Core {
 			<?php
 			$this->field_description( $args );
 		}
+	}
+
+	public function admin_setting_field_input_size( $args ) {
+		$value = $args['value'];
+		$type  = 'number';
+		$id    = isset( $args['label_for'] ) ? $args['label_for'] : '';
+		$name  = isset( $args['name'] ) ? $args['name'] : '';
+
+		$attributes = isset( $args['attributes'] ) ? $args['attributes'] : '';
+
+		$atts = '';
+
+		if ( $this->array_has_value( $attributes ) ) {
+			foreach ( (array) $attributes as $key => $att_value ) {
+				$atts .= $key . '="' . esc_attr( $att_value ) . '" ';
+			}
+
+			$atts = trim( $atts );
+		}
+
+		$width  = isset( $value['width'] ) ? $value['width'] : '';
+		$height = isset( $value['height'] ) ? $value['height'] : '';
+		?>
+		<label for="<?php echo esc_attr( $id ); ?>_width"></label>
+		<input name="<?php echo esc_attr( $name ); ?>[width]" type="<?php echo esc_attr( $type ); ?>"
+		       id="<?php echo esc_attr( $id ); ?>_width"
+		       value="<?php echo esc_attr( $width ); ?>"
+		       class="small-text"<?php echo $atts; ?>>
+		<span>x</span>
+		<label for="<?php echo esc_attr( $id ); ?>_height"></label>
+		<input name="<?php echo esc_attr( $name ); ?>[height]" type="<?php echo esc_attr( $type ); ?>"
+		       id="<?php echo esc_attr( $id ); ?>_height"
+		       value="<?php echo esc_attr( $height ); ?>"
+		       class="small-text"<?php echo $atts; ?>>
+		<span><?php _e( 'Pixels', $this->textdomain ); ?></span>
+		<?php
+		$this->field_description( $args );
 	}
 
 	public function admin_setting_field_textarea( $args ) {
@@ -954,6 +1106,46 @@ class WP_Custom_Coupons_Core {
 		</select>
 		<?php
 		$this->field_description( $args );
+	}
+
+	public function admin_setting_field_posts( $args ) {
+		$post_type = isset( $args['post_type'] ) ? $args['post_type'] : '';
+
+		if ( empty( $post_type ) ) {
+			$post_type = 'post';
+		}
+
+		$query_args = array(
+			'post_type'      => $post_type,
+			'posts_per_page' => - 1,
+			'post_status'    => 'publish',
+			'paged'          => 1
+		);
+
+		$query = new WP_Query( $query_args );
+
+		$label = __( '-- Choose post --', $this->textdomain );
+
+		if ( is_string( $post_type ) ) {
+			$object = get_post_type_object( $post_type );
+			$label  = sprintf( __( '-- Choose %s --', $this->textdomain ), $object->labels->singular_name );
+		}
+
+		$args['option_none'] = '<option value="">' . $label . '</option>';
+
+		if ( $query->have_posts() ) {
+			$options = array();
+
+			foreach ( $query->get_posts() as $post ) {
+				$options[ $post->ID ] = $post->post_title;
+			}
+
+			$args['options'] = $options;
+		}
+
+		$args['class'] = 'regular-text';
+
+		$this->admin_setting_field_select( $args );
 	}
 
 	public function admin_setting_field_media_upload( $args ) {
@@ -1107,6 +1299,58 @@ class WP_Custom_Coupons_Core {
 		<?php
 	}
 
+	public function add_setting_tab( $tab ) {
+		if ( is_array( $tab ) && isset( $tab['name'] ) && ! empty( $tab['name'] ) && ! in_array( $tab['name'], $this->setting_tabs ) ) {
+			$this->setting_tabs[ $tab['name'] ] = $tab;
+		}
+	}
+
+	public function one_term_taxonomy_action( $post_id ) {
+		global $post_type;
+
+		$taxonomies = get_object_taxonomies( $post_type );
+
+		$one_term_taxonomies = array();
+
+		foreach ( $this->one_term_taxonomies as $taxonomy ) {
+			if ( in_array( $taxonomy, $taxonomies ) ) {
+				$terms = wp_get_object_terms( $post_id, $taxonomy );
+
+				if ( $this->array_has_value( $terms ) && 1 < count( $terms ) ) {
+					$term = current( $terms );
+
+					wp_set_object_terms( $post_id, array( $term->term_id ), $taxonomy );
+					$one_term_taxonomies[] = $taxonomy;
+				}
+			}
+		}
+
+		$tr_name = 'one_term_taxonomies_notices';
+
+		if ( $this->array_has_value( $one_term_taxonomies ) ) {
+			set_transient( $tr_name, $one_term_taxonomies );
+		} else {
+			delete_transient( $tr_name );
+		}
+	}
+
+	public function one_term_taxonimes_notices() {
+		$tr_name = 'one_term_taxonomies_notices';
+
+		if ( false !== ( $taxonomies = get_transient( $tr_name ) ) ) {
+			foreach ( $taxonomies as $taxonomy ) {
+				$taxonomy_object = get_taxonomy( $taxonomy );
+				?>
+				<div class="notice notice-warning is-dismissible">
+					<p><?php printf( __( '<strong>Warning:</strong> You can choose one term only for taxonomy %s.', $this->textdomain ), $taxonomy_object->labels->singular_name . ' (' . $taxonomy . ')' ); ?></p>
+				</div>
+				<?php
+			}
+
+			delete_transient( $tr_name );
+		}
+	}
+
 	private function init() {
 		$this->base_dir = dirname( $this->plugin_file );
 		$this->base_url = plugins_url( '', $this->plugin_file );
@@ -1117,6 +1361,10 @@ class WP_Custom_Coupons_Core {
 		$this->version    = $this->get_plugin_info( 'Version' );
 
 		$this->set_option_name( basename( $this->base_dir ) );
+
+		$this->setting_tabs = array();
+
+		$this->setting_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : '';
 
 		if ( ! is_array( $this->labels ) ) {
 			$this->labels = array();
@@ -1140,6 +1388,11 @@ class WP_Custom_Coupons_Core {
 			add_action( 'admin_menu', array( $this, 'admin_menu_action' ), 20 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_footer', array( $this, 'admin_footer' ) );
+
+			if ( $this->array_has_value( $this->one_term_taxonomies ) ) {
+				add_action( 'save_post', array( $this, 'one_term_taxonomy_action' ), 99 );
+				add_action( 'admin_notices', array( $this, 'one_term_taxonimes_notices' ) );
+			}
 		}
 
 		add_action( 'admin_footer', array( $this, 'created_by_log' ) );
