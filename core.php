@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class Car_Price_Compare_Core {
+class App_Summary_Core {
 	protected static $instance;
 
 	public $require_php_version = '5.6';
@@ -484,6 +484,26 @@ class Car_Price_Compare_Core {
 		return $url;
 	}
 
+	public function convert_array_attributes_to_string( $attributes ) {
+		$atts = '';
+
+		if ( $this->array_has_value( $attributes ) ) {
+			foreach ( (array) $attributes as $key => $att_value ) {
+				$atts .= $key . '="' . esc_attr( $att_value ) . '" ';
+			}
+
+			$atts = trim( $atts );
+		} else {
+			$atts = $attributes;
+		}
+
+		if ( empty( $atts ) ) {
+			$atts = '';
+		}
+
+		return $atts;
+	}
+
 	public function is_image_url( $url ) {
 		$img_formats = array( 'png', 'jpg', 'jpeg', 'gif', 'tiff', 'bmp', 'ico' );
 
@@ -956,16 +976,13 @@ class Car_Price_Compare_Core {
 		$id    = isset( $args['label_for'] ) ? $args['label_for'] : '';
 		$name  = isset( $args['name'] ) ? $args['name'] : '';
 
-		$attributes = isset( $args['attributes'] ) ? $args['attributes'] : '';
+		$atts = isset( $args['attributes'] ) ? $args['attributes'] : '';
+		$atts = $this->convert_array_attributes_to_string( $atts );
 
-		$atts = '';
+		$class = isset( $args['class'] ) ? $args['class'] : '';
 
-		if ( $this->array_has_value( $attributes ) ) {
-			foreach ( (array) $attributes as $key => $att_value ) {
-				$atts .= $key . '="' . esc_attr( $att_value ) . '" ';
-			}
-
-			$atts = trim( $atts );
+		if ( empty( $class ) ) {
+			$class = 'regular-text';
 		}
 
 		if ( 'checkbox' == $type || 'radio' == $type ) {
@@ -983,7 +1000,7 @@ class Car_Price_Compare_Core {
 				<input name="<?php echo esc_attr( $name ); ?>" type="<?php echo esc_attr( $type ); ?>"
 				       id="<?php echo esc_attr( $id ); ?>"
 				       value="<?php echo esc_attr( $field_value ); ?>"
-				       class="regular-text"<?php checked( $value, $field_value ); ?><?php echo $atts; ?>> <?php echo $label; ?>
+				       class="<?php echo esc_attr( $class ); ?>"<?php checked( $value, $field_value ); ?><?php echo $atts; ?>> <?php echo $label; ?>
 			</label>
 			<?php
 			if ( $show_desc ) {
@@ -995,7 +1012,7 @@ class Car_Price_Compare_Core {
 			<input name="<?php echo esc_attr( $name ); ?>" type="<?php echo esc_attr( $type ); ?>"
 			       id="<?php echo esc_attr( $id ); ?>"
 			       value="<?php echo esc_attr( $value ); ?>"
-			       class="regular-text"<?php echo $atts; ?>>
+			       class="<?php echo esc_attr( $class ); ?>"<?php echo $atts; ?>>
 			<?php
 			$this->field_description( $args );
 		}
@@ -1007,17 +1024,8 @@ class Car_Price_Compare_Core {
 		$id    = isset( $args['label_for'] ) ? $args['label_for'] : '';
 		$name  = isset( $args['name'] ) ? $args['name'] : '';
 
-		$attributes = isset( $args['attributes'] ) ? $args['attributes'] : '';
-
-		$atts = '';
-
-		if ( $this->array_has_value( $attributes ) ) {
-			foreach ( (array) $attributes as $key => $att_value ) {
-				$atts .= $key . '="' . esc_attr( $att_value ) . '" ';
-			}
-
-			$atts = trim( $atts );
-		}
+		$atts = isset( $args['attributes'] ) ? $args['attributes'] : '';
+		$atts = $this->convert_array_attributes_to_string( $atts );
 
 		$width  = isset( $value['width'] ) ? $value['width'] : '';
 		$height = isset( $value['height'] ) ? $value['height'] : '';
@@ -1042,9 +1050,16 @@ class Car_Price_Compare_Core {
 		$value = $args['value'];
 		$id    = isset( $args['label_for'] ) ? $args['label_for'] : '';
 		$name  = isset( $args['name'] ) ? $args['name'] : '';
+
+		$class = isset( $args['class'] ) ? $args['class'] : '';
+
+		if ( empty( $class ) ) {
+			$class = 'widefat';
+		}
 		?>
 		<label for="<?php echo esc_attr( $id ); ?>"></label>
-		<textarea name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $id ); ?>" class="widefat"
+		<textarea name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $id ); ?>"
+		          class="<?php echo esc_attr( $class ); ?>"
 		          rows="5"><?php echo esc_attr( $value ); ?></textarea>
 		<?php
 		$this->field_description( $args );
@@ -1072,10 +1087,13 @@ class Car_Price_Compare_Core {
 		$option_none = isset( $args['option_none'] ) ? $args['option_none'] : '';
 		$label       = isset( $args['label'] ) ? $args['label'] : '';
 		$class       = isset( $args['class'] ) ? $args['class'] : 'widefat';
+
+		$atts = isset( $args['attributes'] ) ? $args['attributes'] : '';
+		$atts = $this->convert_array_attributes_to_string( $atts );
 		?>
 		<label for="<?php echo esc_attr( $id ); ?>"><?php echo $label; ?></label>
 		<select name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $id ); ?>"
-		        class="<?php echo $class; ?>">
+		        class="<?php echo esc_attr( $class ); ?>"<?php echo $atts; ?>>
 			<?php
 			if ( empty( $option_none ) ) {
 				?>
@@ -1094,9 +1112,15 @@ class Car_Price_Compare_Core {
 						$current = isset( $data['value'] ) ? $data['value'] : '';
 						$text    = isset( $data['text'] ) ? $data['text'] : '';
 					}
+
+					$selected = false;
+
+					if ( $value === $current || ( is_array( $value ) && in_array( $current, $value ) ) ) {
+						$selected = true;
+					}
 					?>
 					<option
-						value="<?php echo esc_attr( $current ); ?>"<?php selected( $value, $current ); ?>><?php echo $text; ?></option>
+						value="<?php echo esc_attr( $current ); ?>"<?php selected( $selected, true ); ?>><?php echo $text; ?></option>
 					<?php
 				}
 			} elseif ( is_string( $options ) ) {
@@ -1106,6 +1130,31 @@ class Car_Price_Compare_Core {
 		</select>
 		<?php
 		$this->field_description( $args );
+	}
+
+	public function admin_setting_field_chosen( $args ) {
+		$atts = isset( $args['attributes'] ) ? $args['attributes'] : '';
+
+		if ( ! is_array( $atts ) ) {
+			$atts = array();
+		}
+
+		$atts['data-chosen'] = 1;
+
+		if ( ! isset( $atts['multiple'] ) ) {
+			$atts['multiple'] = 'multiple';
+
+			$name = isset( $args['name'] ) ? $args['name'] : '';
+
+			if ( ! empty( $name ) && false === strpos( $name, '[]' ) ) {
+				$name .= '[]';
+				$args['name'] = $name;
+			}
+		}
+
+		$args['attributes'] = $atts;
+
+		$this->admin_setting_field_select( $args );
 	}
 
 	public function admin_setting_field_posts( $args ) {

@@ -1,0 +1,9 @@
+table.striped.app-summary > tbody > tr:nth-child(2n+1) {
+    background-color: rgba(242, 242, 242, 0.5);
+}
+
+table.striped.app-summary th,
+table.striped.app-summary td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
