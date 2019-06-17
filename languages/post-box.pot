@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SB Core\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/tags/_s\n"
-"POT-Creation-Date: 2019-03-13 16:30+0700\n"
+"POT-Creation-Date: 2019-05-22 20:37+0700\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13,102 +13,90 @@ msgstr ""
 "PO-Revision-Date: 2016-12-23 16:00+0100\n"
 "Last-Translator: \n"
 "Language-Team: HocWP Team - hocwp.net@gmail.com - www.hocwp.net\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.2\n"
 "X-Poedit-KeywordsList: __;_e;__ngettext:1,2;_n:1,2;__ngettext_noop:1,2;_n_noop:1,2;_c,_nc:4c,1,2;_x:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;_ex:1,2c;"
 "esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: core.php:779
+#: core/core.php:266
+msgid "Invalid Google API Key."
+msgstr ""
+
+#: core/core.php:1153
 msgid "Settings"
 msgstr ""
 
-#: core.php:1044
+#: core/core.php:1418
 msgid "Pixels"
 msgstr ""
 
-#: core.php:1176
+#: core/core.php:1550
 msgid "-- Choose post --"
 msgstr ""
 
-#: core.php:1180
+#: core/core.php:1554
 #, php-format
 msgid "-- Choose %s --"
 msgstr ""
 
-#: core.php:1206
+#: core/core.php:1580
 msgid "Remove"
 msgstr ""
 
-#: core.php:1207
+#: core/core.php:1581
 msgid "Add"
 msgstr ""
 
-#: core.php:1250
+#: core/core.php:1624
 msgid "Insert Media"
 msgstr ""
 
-#: core.php:1337
+#: core/core.php:1727
 #, php-format
 msgid "Plugin %s is created by %s"
 msgstr ""
 
-#: core.php:1346
+#: core/core.php:1736
 #, php-format
 msgid "<strong>Error:</strong> Plugin %s requires PHP version at least %s, please upgrade it or contact your hosting provider."
 msgstr ""
 
-#: core.php:1394
+#: core/core.php:1784
 #, php-format
 msgid "<strong>Warning:</strong> You can choose one term only for taxonomy %s."
 msgstr ""
 
-#: main.php:93
-msgid "You can set the fields which get value from taxonomy."
+#: core/core.php:1940
+#, php-format
+msgid "<strong>%s:</strong> You must install and activate thesse required plugins: %s."
 msgstr ""
 
-#: main.php:106
-msgid "The title for post information box on frontend. Use tag <code>%post_title%</code> for replacing with post title."
-msgstr ""
-
-#: main.php:109
-msgid "Box Title"
-msgstr ""
-
-#: main.php:113
-msgid "Do not add summary box to post content"
-msgstr ""
-
-#: main.php:114
-msgid "Before post content"
-msgstr ""
-
-#: main.php:115
-msgid "After post content"
-msgstr ""
-
-#: main.php:120
-msgid "Box Position"
-msgstr ""
-
-#: main.php:123
-msgid "Each field separated by commas."
-msgstr ""
-
-#: main.php:127
-msgid "Meta Fields"
+#: main.php:46
+msgid "Discover more"
 msgstr ""
 
 #: main.php:129
-msgid "Ads"
+msgid "Contact for price"
 msgstr ""
 
-#: main.php:134
-msgid "Taxonomy Fields"
+#: main.php:185
+msgid "Post Number"
 msgstr ""
 
-#: main.php:179
-#, php-format
-msgid "%s Information"
+#: main.php:186
+msgid "Post Column"
+msgstr ""
+
+#: main.php:190
+msgid "Discover More Text"
+msgstr ""
+
+#: main.php:192
+msgid "Each post type separated by commas."
+msgstr ""
+
+#: main.php:194
+msgid "Post Type"
 msgstr ""

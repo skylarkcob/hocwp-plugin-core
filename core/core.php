@@ -3,16 +3,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class App_Summary_Core {
+class Post_Box_Core {
 	protected static $instance;
 
 	public $require_php_version = '5.6';
+	public $required_plugins;
+
+	public $user_agent;
+
+	public $is_developing;
+	public $css_suffix;
+	public $js_suffix;
+	public $doing_ajax;
+	public $doing_cron;
 
 	protected $plugin_file;
 	protected $version;
 
 	protected $base_dir;
 	protected $base_url;
+	protected $plugins_dir;
 
 	protected $base_name;
 
@@ -26,13 +36,105 @@ class App_Summary_Core {
 	public $setting_tabs;
 	public $setting_tab;
 
+	public $option_defaults;
+
 	public $sub_menu = true;
 	public $menu_icon = 'dashicons-admin-generic';
 
 	public $one_term_taxonomies = array();
 
+	public $safe_string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+	public $date_format;
+	public $time_format;
+
 	public function is_empty_string( $string ) {
 		return ( is_string( $string ) && empty( $string ) );
+	}
+
+	public function random_string( $length = 10, $keyspace = '' ) {
+		if ( empty( $keyspace ) ) {
+			$keyspace = $this->safe_string;
+		}
+
+		$pieces = array();
+
+		$max = mb_strlen( $keyspace, '8bit' ) - 1;
+
+		for ( $i = 0; $i < $length; ++ $i ) {
+			$index = random_int( 0, $max );
+
+			$pieces[] = $keyspace[ $index ];
+		}
+
+		return implode( '', $pieces );
+	}
+
+	public function string_to_datetime( $string, $format = '' ) {
+		if ( empty( $format ) ) {
+			$format = 'Y-m-d H:i:s';
+		}
+
+		$string = str_replace( '/', '-', $string );
+		$string = trim( $string );
+
+		$totime = strtotime( $string );
+
+		$result = date( $format, $totime );
+
+		return $result;
+	}
+
+	public static function javascript_datetime_format( $php_format ) {
+		$matched_symbols = array(
+			'd' => 'dd',
+			'D' => 'D',
+			'j' => 'd',
+			'l' => 'DD',
+			'N' => '',
+			'S' => '',
+			'w' => '',
+			'z' => 'o',
+			'W' => '',
+			'F' => 'MM',
+			'm' => 'mm',
+			'M' => 'M',
+			'n' => 'm',
+			't' => '',
+			'L' => '',
+			'o' => '',
+			'Y' => 'yy',
+			'y' => 'y',
+			'a' => '',
+			'A' => '',
+			'B' => '',
+			'g' => '',
+			'G' => '',
+			'h' => '',
+			'H' => '',
+			'i' => '',
+			's' => '',
+			'u' => ''
+		);
+
+		$result   = '';
+		$escaping = false;
+
+		for ( $i = 0; $i < strlen( $php_format ); $i ++ ) {
+			$char = $php_format[ $i ];
+
+			if ( isset( $matched_symbols[ $char ] ) ) {
+				$result .= $matched_symbols[ $char ];
+			} else {
+				$result .= $char;
+			}
+		}
+
+		if ( $escaping ) {
+			$result = esc_attr( $result );
+		}
+
+		return $result;
 	}
 
 	public function size_in_bytes( $size ) {
@@ -117,6 +219,69 @@ class App_Summary_Core {
 		return min( $max_upload, $max_post, $memory_limit );
 	}
 
+	public function get_youtube_video_id( $url ) {
+		$id = '';
+
+		if ( false === strpos( $url, 'http' ) ) {
+			$id = $url;
+		} else {
+			if ( false !== strpos( $url, '?v=' ) ) {
+				$parts = parse_url( $url );
+
+				if ( isset( $parts['query'] ) ) {
+					parse_str( $parts['query'], $query );
+
+					$id = isset( $query['v'] ) ? $query['v'] : '';
+				}
+			} elseif ( false !== strpos( $url, '/embed/' ) ) {
+				$parts = explode( '/embed/', $url );
+				$id    = array_pop( $parts );
+			} elseif ( false !== strpos( $url, 'youtu.be/' ) ) {
+				$parts = explode( 'youtu.be/', $url );
+				$id    = array_pop( $parts );
+			} elseif ( false !== strpos( $url, 'youtube.com/video/' ) ) {
+				$parts = explode( 'youtube.com/video/', $url );
+				$parts = array_pop( $parts );
+				$parts = explode( '/', $parts );
+
+				if ( isset( $parts[0] ) && ! empty( $parts[0] ) ) {
+					$id = $parts[0];
+				}
+			}
+		}
+
+		return $id;
+	}
+
+	public function get_youtube_video_thumbnail_url( $video_id ) {
+		if ( false !== strpos( $video_id, 'http' ) || false !== strpos( $video_id, 'www' ) || false !== strpos( $video_id, 'youtu' ) ) {
+			$video_id = $this->get_youtube_video_id( $video_id );
+		}
+
+		return 'http://img.youtube.com/vi/' . $video_id . '/0.jpg';
+	}
+
+	public function get_youtube_video_info( $video_id, $api_key ) {
+		if ( empty( $api_key ) ) {
+			return new WP_Error( 'invalid_google_api_key', __( 'Invalid Google API Key.', $this->textdomain ) );
+		}
+
+		$url = 'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' . $video_id . '&key=' . $api_key;
+		$res = wp_remote_get( $url );
+
+		$res = wp_remote_retrieve_body( $res );
+
+		if ( ! empty( $res ) ) {
+			$res = json_decode( $res );
+
+			if ( is_object( $res ) && ! is_wp_error( $res ) && isset( $res->items ) && $this->array_has_value( $res->items ) ) {
+				return current( $res->items );
+			}
+		}
+
+		return $res;
+	}
+
 	public function ftp_connect( $host, $user, $password, $port = 21 ) {
 		$conn_id = @ftp_connect( $host, $port );
 
@@ -190,10 +355,22 @@ class App_Summary_Core {
 				$uploaded = @ftp_put( $conn, $new_name, $file['tmp_name'], FTP_BINARY );
 
 				@ftp_close( $conn );
+
+				return $uploaded;
 			}
 		}
 
 		return false;
+	}
+
+	public function get_meta_or_option( $object_id, $meta_key, $object_type = 'post' ) {
+		$value = get_metadata( $object_type, $object_id, $meta_key, true );
+
+		if ( '' == $value ) {
+			$value = $this->get_option( $meta_key );
+		}
+
+		return $value;
 	}
 
 	public function get_terms( $args = array() ) {
@@ -429,6 +606,94 @@ class App_Summary_Core {
 		return $result;
 	}
 
+	public function get_media_id_by_url( $url ) {
+		global $wpdb;
+
+		$sql = 'SELECT ID';
+		$sql .= ' FROM ' . $wpdb->posts;
+		$sql .= " WHERE guid='%s'";
+
+		$sql = $wpdb->prepare( $sql, $url );
+
+		$attachment = $wpdb->get_col( $sql );
+
+		if ( $this->array_has_value( $attachment ) && isset( $attachment[0] ) ) {
+			return $attachment[0];
+		}
+
+		return false;
+	}
+
+	public function set_post_thumbnail( $post_id, $id_or_url ) {
+		if ( ! $this->is_positive_number( $id_or_url ) && ! empty( $id_or_url ) ) {
+			$id = $this->get_media_id_by_url( $id_or_url );
+
+			if ( ! $this->is_positive_number( $id ) ) {
+				$id = $this->download_image( $id_or_url );
+			}
+
+			if ( $this->is_positive_number( $id ) ) {
+				$id_or_url = $id;
+			}
+
+			unset( $id );
+		}
+
+		if ( $this->is_positive_number( $id_or_url ) ) {
+			return set_post_thumbnail( $post_id, $id_or_url );
+		}
+
+		return false;
+	}
+
+	public function download_image( $url, $name = '' ) {
+		if ( ! $url || empty ( $url ) ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'download_url' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/file.php' );
+		}
+
+		if ( ! function_exists( 'media_handle_sideload' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/media.php' );
+		}
+
+		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/image.php' );
+		}
+
+		$file_array = array(
+			'tmp_name' => download_url( $url )
+		);
+
+		if ( empty( $file_array['tmp_name'] ) || is_wp_error( $file_array['tmp_name'] ) ) {
+			return false;
+		}
+
+		if ( $name ) {
+			$file_array['name'] = $name;
+		} else {
+			preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', $file_array['tmp_name'], $matches );
+
+			if ( ! empty( $matches ) ) {
+				$file_array['name'] = basename( $matches[0] );
+			} else {
+				$file_array['name'] = uniqid( 'downloaded-' ) . '.jpeg';
+			}
+		}
+
+		$id = media_handle_sideload( $file_array, 0 );
+
+		if ( is_wp_error( $id ) ) {
+			@unlink( $file_array['tmp_name'] );
+
+			return false;
+		}
+
+		return $id;
+	}
+
 	public function get_image_sizes() {
 		global $_wp_additional_image_sizes;
 
@@ -593,6 +858,16 @@ class App_Summary_Core {
 		return $matches;
 	}
 
+	public function replace_last( $search, $replace, $subject ) {
+		$pos = strrpos( $subject, $search );
+
+		if ( $pos !== false ) {
+			$subject = substr_replace( $subject, $replace, $pos, strlen( $search ) );
+		}
+
+		return $subject;
+	}
+
 	public function is_IP( $IP ) {
 		return filter_var( $IP, FILTER_VALIDATE_IP );
 	}
@@ -679,6 +954,14 @@ class App_Summary_Core {
 		return $this->base_url;
 	}
 
+	public function get_current_url() {
+		$base_url = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'];
+
+		$url = $base_url . $_SERVER['REQUEST_URI'];
+
+		return $url;
+	}
+
 	public function get_plugin_data() {
 		if ( ! function_exists( 'get_plugin_data' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -691,6 +974,89 @@ class App_Summary_Core {
 		$data = $this->get_plugin_data();
 
 		return ( is_array( $data ) && isset( $data[ $header ] ) && ! empty( $data[ $header ] ) ) ? $data[ $header ] : '';
+	}
+
+	public function pagination( $query, $paged = null, $max_page = null, $args = array() ) {
+		if ( ! $query instanceof WP_Query ) {
+			$query = $GLOBALS['wp_query'];
+		}
+
+		$big = 999999999;
+
+		if ( ! is_numeric( $paged ) ) {
+			$paged = $query->get( 'paged' );
+
+			if ( ! is_numeric( $paged ) ) {
+				$paged = get_query_var( 'paged' );
+			}
+		}
+
+		if ( ! is_numeric( $paged ) ) {
+			$paged = 1;
+		}
+
+		if ( ! $max_page ) {
+			$max_page = $query->max_num_pages;
+		}
+
+		if ( ! is_numeric( $max_page ) ) {
+			$max_page = 1;
+		}
+
+		$defaults = array(
+			'base'    => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+			'current' => max( 1, $paged ),
+			'total'   => $max_page
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		return paginate_links( $args );
+	}
+
+	public function pagination_html( $query, $paged = null, $max_page = null, $args = array() ) {
+		echo '<div class="pagination-container">' . PHP_EOL;
+		echo $this->pagination( $query, $paged, $max_page, $args );
+		echo '</div>' . PHP_EOL;
+	}
+
+	public function toastr( $message, $type = 'success', $redirect = '' ) {
+		if ( ! empty( $redirect ) ) {
+			$redirect = 'setTimeout(function(){window.location.href="' . $redirect . '"},3e3);';
+		}
+
+		switch ( $type ) {
+			case 'error':
+				$type = 'toastr.error("' . $message . '");';
+				break;
+			case 'warning':
+				$type = 'toastr.warning("' . $message . '");';
+				break;
+			case 'success':
+				$type = 'toastr.success("' . $message . '");';
+				break;
+			default:
+				$type = 'toastr.info("' . $message . '");';
+		}
+		?>
+		<script>
+			jQuery(document).ready(function ($) {
+				(function () {
+					if ("undefine" != typeof toastr) {
+						toastr.options = {
+							preventDuplicates: true
+						};
+
+						<?php echo $type; ?>
+					} else {
+						alert("<?php echo $message; ?>");
+					}
+
+					<?php echo $redirect; ?>
+				})();
+			});
+		</script>
+		<?php
 	}
 
 	public function get_textdomain() {
@@ -716,6 +1082,14 @@ class App_Summary_Core {
 
 		if ( isset( $options[0] ) && $this->is_empty_string( $options[0] ) ) {
 			unset( $options[0] );
+		}
+
+		if ( ! is_array( $options ) ) {
+			$options = array();
+		}
+
+		if ( $this->array_has_value( $this->option_defaults ) ) {
+			$options = wp_parse_args( $options, $this->option_defaults );
 		}
 
 		return $options;
@@ -1327,6 +1701,22 @@ class App_Summary_Core {
 		<?php
 	}
 
+	public function Ascending( $a, $b ) {
+		if ( $a == $b ) {
+			return 0;
+		}
+
+		return ( $a < $b ) ? - 1 : 1;
+	}
+
+	public function Descending( $a, $b ) {
+		if ( $a == $b ) {
+			return 0;
+		}
+
+		return ( $a > $b ) ? - 1 : 1;
+	}
+
 	public function created_by_log() {
 		$show = apply_filters( 'hocwp_plugin_console_log_created_by', true );
 
@@ -1334,7 +1724,7 @@ class App_Summary_Core {
 			$name = $this->get_plugin_info( 'Name' );
 			?>
 			<script>
-				console.log("%c<?php printf(__('Plugin %s is created by %s', $this->textdomain), $name, 'HocWP Team - http://hocwp.net'); ?>", "font-size:16px;color:red;font-family:tahoma;padding:10px 0");
+				console.log("%c<?php printf( __( 'Plugin %s is created by %s', $this->textdomain ), $name, 'HocWP Team - http://hocwp.net' ); ?>", "font-size:16px;color:red;font-family:tahoma;padding:10px 0");
 			</script>
 			<?php
 		}
@@ -1400,9 +1790,23 @@ class App_Summary_Core {
 		}
 	}
 
+	public function require_plugin( $plugin ) {
+		if ( ! empty( $plugin ) ) {
+			if ( ! is_array( $this->required_plugins ) ) {
+				$this->required_plugins = array();
+			}
+
+			if ( ! in_array( $plugin, $this->required_plugins ) ) {
+				$this->required_plugins[] = $plugin;
+			}
+		}
+	}
+
 	private function init() {
 		$this->base_dir = dirname( $this->plugin_file );
 		$this->base_url = plugins_url( '', $this->plugin_file );
+
+		$this->plugins_dir = dirname( $this->base_dir );
 
 		$this->base_name = plugin_basename( $this->plugin_file );
 
@@ -1423,6 +1827,8 @@ class App_Summary_Core {
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
+		add_action( 'init', array( $this, 'init_action' ) );
+
 		$version = phpversion();
 
 		if ( version_compare( $this->require_php_version, $version, '>' ) ) {
@@ -1436,6 +1842,11 @@ class App_Summary_Core {
 			add_filter( 'plugin_action_links_' . $this->base_name, array( $this, 'action_links_filter' ), 20 );
 			add_action( 'admin_menu', array( $this, 'admin_menu_action' ), 20 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+
+			if ( $this->array_has_value( $this->required_plugins ) ) {
+				add_action( 'admin_notices', array( $this, 'required_plugins_notices' ) );
+			}
+
 			add_action( 'admin_footer', array( $this, 'admin_footer' ) );
 
 			if ( $this->array_has_value( $this->one_term_taxonomies ) ) {
@@ -1449,7 +1860,105 @@ class App_Summary_Core {
 		add_action( 'login_footer', array( $this, 'created_by_log' ) );
 	}
 
+	public function init_action() {
+		if ( false !== get_transient( 'flush_rewrite_rules' ) ) {
+			flush_rewrite_rules();
+			delete_transient( 'flush_rewrite_rules' );
+		}
+	}
+
+	public function required_plugins_notices() {
+		global $pagenow;
+
+		if ( 'update.php' == $pagenow ) {
+			return;
+		}
+
+		$data   = get_plugin_data( $this->plugin_file );
+		$plugin = '';
+
+		$active_plugins = wp_get_active_and_valid_plugins();
+
+		foreach ( $this->required_plugins as $rp ) {
+			if ( ! is_plugin_active( $rp ) ) {
+				$file = trailingslashit( $this->plugins_dir ) . $rp;
+
+				$plugin_slug = dirname( $rp );
+				$plugin_name = $plugin_slug;
+
+				if ( file_exists( $file ) ) {
+					$info = get_plugin_data( $file );
+
+					if ( is_array( $info ) && isset( $info['Name'] ) && ! empty( $info['Name'] ) ) {
+						$plugin_name = $info['Name'];
+					}
+
+					$url = admin_url( 'plugins.php' );
+
+					$params = array(
+						'action' => 'activate',
+						'plugin' => urlencode( $rp )
+					);
+
+					$url = add_query_arg( $params, $url );
+
+					$url = wp_nonce_url( $url, 'activate-plugin_' . $rp );
+
+					$plugin .= '<a href="' . $url . '"><strong>' . $plugin_name . '</strong></a>, ';
+				} else {
+					if ( ! function_exists( 'plugins_api' ) ) {
+						require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+					}
+
+					$api = plugins_api( 'plugin_information', array( 'slug' => $plugin_slug ) );
+
+					if ( is_object( $api ) && ! is_wp_error( $api ) && isset( $api->name ) ) {
+						$plugin_name = $api->name;
+					}
+
+					$url = admin_url( 'update.php' );
+
+					$params = array(
+						'action' => 'install-plugin',
+						'plugin' => $plugin_slug
+					);
+
+					$url = add_query_arg( $params, $url );
+
+					$url = wp_nonce_url( $url, 'install-plugin_' . $plugin_slug );
+
+					$plugin .= '<a href="' . $url . '"><strong>' . $plugin_name . '</strong></a>, ';
+				}
+			}
+		}
+
+		$plugin = rtrim( $plugin, ', ' );
+
+		if ( ! empty( $plugin ) ) {
+			?>
+			<div class="notice notice-error">
+				<p><?php printf( __( '<strong>%s:</strong> You must install and activate thesse required plugins: %s.', $this->textdomain ), $data['Name'], $plugin ); ?></p>
+			</div>
+			<?php
+		}
+	}
+
 	public function __construct() {
+		$this->user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+
+		$this->is_developing = ( ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) ? true : false );
+		$this->css_suffix    = ( $this->is_developing ) ? '.css' : '.min.css';
+		$this->js_suffix     = ( $this->is_developing ) ? '.js' : '.min.js';
+		$this->doing_ajax    = ( ( defined( 'DOING_AJAX' ) && true === DOING_AJAX ) ? true : false );
+		$this->doing_cron    = ( ( defined( 'DOING_CRON' ) && true === DOING_CRON ) ? true : false );
+
+		$this->date_format = get_option( 'date_format' );
+		$this->time_format = get_option( 'time_format' );
+
+		add_action( 'plugins_loaded', array( $this, 'run_init_action' ), 11 );
+	}
+
+	public function run_init_action() {
 		$this->init();
 	}
 }

@@ -1,3 +1,5 @@
-jQuery(document).ready(function ($) {
+window.postBox = window.postBox || {};
 
-});
+(function ($) {
+    var body = $("body");
+})(jQuery);
