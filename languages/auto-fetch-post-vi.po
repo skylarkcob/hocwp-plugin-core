@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SB Core\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/tags/_s\n"
-"POT-Creation-Date: 2019-05-22 20:38+0700\n"
-"PO-Revision-Date: 2019-05-22 20:38+0700\n"
+"POT-Creation-Date: 2019-10-07 21:34+0700\n"
+"PO-Revision-Date: 2019-10-07 21:34+0700\n"
 "Last-Translator: \n"
 "Language-Team: HocWP Team - hocwp.net@gmail.com - www.hocwp.net\n"
 "Language: vi\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 2.2.2\n"
+"X-Generator: Poedit 2.2.3\n"
 "X-Poedit-KeywordsList: __;_e;__ngettext:1,2;_n:1,2;__ngettext_noop:1,2;"
 "_n_noop:1,2;_c,_nc:4c,1,2;_x:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;_ex:1,2c;"
 "esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
@@ -21,45 +21,45 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: core/core.php:266
+#: core/core.php:270
 msgid "Invalid Google API Key."
 msgstr "Mã Google API Key không hợp lệ."
 
-#: core/core.php:1153
+#: core/core.php:1355
 msgid "Settings"
 msgstr "Cài đặt"
 
-#: core/core.php:1418
+#: core/core.php:1632
 msgid "Pixels"
 msgstr "Điểm ảnh"
 
-#: core/core.php:1550
+#: core/core.php:1764
 msgid "-- Choose post --"
 msgstr "-- Chọn bài viết --"
 
-#: core/core.php:1554
+#: core/core.php:1768
 #, php-format
 msgid "-- Choose %s --"
 msgstr "-- Chọn %s --"
 
-#: core/core.php:1580
+#: core/core.php:1794
 msgid "Remove"
 msgstr "Xóa"
 
-#: core/core.php:1581
+#: core/core.php:1795
 msgid "Add"
 msgstr "Thêm"
 
-#: core/core.php:1624
+#: core/core.php:1838
 msgid "Insert Media"
 msgstr "Thêm tập tin"
 
-#: core/core.php:1727
+#: core/core.php:1941
 #, php-format
 msgid "Plugin %s is created by %s"
 msgstr "Plugin %s được tạo bởi %s"
 
-#: core/core.php:1736
+#: core/core.php:1950
 #, php-format
 msgid ""
 "<strong>Error:</strong> Plugin %s requires PHP version at least %s, please "
@@ -68,14 +68,14 @@ msgstr ""
 "<strong>Lỗi:</strong> Plugin %s yêu cầu phiên bản PHP từ %s, xin vui lòng "
 "nâng cấp hoặc liên hệ với nhà cung cấp hosting."
 
-#: core/core.php:1784
+#: core/core.php:1998
 #, php-format
 msgid "<strong>Warning:</strong> You can choose one term only for taxonomy %s."
 msgstr ""
 "<strong>Cảnh báo:</strong> Bạn chỉ có thể chọn một mục duy nhất cho taxonomy "
 "%s."
 
-#: core/core.php:1940
+#: core/core.php:2162
 #, php-format
 msgid ""
 "<strong>%s:</strong> You must install and activate thesse required plugins: "
@@ -83,33 +83,87 @@ msgid ""
 msgstr ""
 "<strong>%s:</strong> Bạn phải cài đặt và kích hoạt các plugin bắt buộc: %s."
 
-#: main.php:46
-msgid "Discover more"
-msgstr "Khám phá thêm"
+#: core/core.php:2170
+msgid ""
+"The <strong>$sql_column</strong> argument just only contains MySQL query "
+"inside (), it isn't full MySQL query."
+msgstr ""
+"Tham số <strong>$sql_column</strong> chỉ chứa truy vấn MySQL bên trong ngoặc "
+"đơn (), chứ không phải chứa câu truy vấn MySQL đầy đủ."
 
-#: main.php:129
-msgid "Contact for price"
-msgstr "Giá liên hệ"
+#: main.php:47
+msgid "AJAX Load More"
+msgstr "Tải thêm AJAX"
 
-#: main.php:185
-msgid "Post Number"
-msgstr "Số bài viết"
+#: main.php:75
+msgid "No more posts"
+msgstr "Không còn bài viết"
 
-#: main.php:186
-msgid "Post Column"
-msgstr "Số cột bài viết"
+#: main.php:77 main.php:93
+msgid "Loading more"
+msgstr "Đang tải thêm"
 
-#: main.php:190
-msgid "Discover More Text"
-msgstr "Văn bản khám phá thêm"
+#: main.php:92 main.php:93
+msgid "Load more"
+msgstr "Tải thêm"
 
-#: main.php:192
-msgid "Each post type separated by commas."
-msgstr "Mỗi thể loại bài viết được cách nhau bởi dấu phẩy."
+#: main.php:103
+msgid ""
+"Add body class you want to skip load more button. Each class separate by "
+"commas."
+msgstr ""
+"Thêm thuộc tính class của thẻ body mà bạn muốn bỏ qua nút tải thêm. Mỗi "
+"class cách nhau bởi dấu phẩy."
 
-#: main.php:194
-msgid "Post Type"
-msgstr "Loại bài viết"
+#: main.php:106
+msgid "Skip Body Class"
+msgstr "Bỏ qua body class"
+
+#: main.php:112
+msgid "Auto Load Offset"
+msgstr "Tự động tải offset"
+
+#~ msgid "User ID"
+#~ msgstr "ID người dùng"
+
+#~ msgid "API Key"
+#~ msgstr "Mã API"
+
+#~ msgid "Secret Key"
+#~ msgstr "Khóa bí mật"
+
+#~ msgid "Change OG URL"
+#~ msgstr "Thay đổi OG URL"
+
+#~ msgid "All manufacturer"
+#~ msgstr "Tất cả hãng"
+
+#~ msgid "Collapse"
+#~ msgstr "Thu gọn"
+
+#~ msgid "Max Height"
+#~ msgstr "Chiều cao tối đa"
+
+#~ msgid "Discover more"
+#~ msgstr "Khám phá thêm"
+
+#~ msgid "Contact for price"
+#~ msgstr "Giá liên hệ"
+
+#~ msgid "Post Number"
+#~ msgstr "Số bài viết"
+
+#~ msgid "Post Column"
+#~ msgstr "Số cột bài viết"
+
+#~ msgid "Discover More Text"
+#~ msgstr "Văn bản khám phá thêm"
+
+#~ msgid "Each post type separated by commas."
+#~ msgstr "Mỗi thể loại bài viết được cách nhau bởi dấu phẩy."
+
+#~ msgid "Post Type"
+#~ msgstr "Loại bài viết"
 
 #~ msgid "Like"
 #~ msgstr "Thích"
@@ -426,9 +480,6 @@ msgstr "Loại bài viết"
 #~ msgid "Comment System"
 #~ msgstr "Hệ thống bình luận"
 
-#~ msgid "Google API Key"
-#~ msgstr "Google API Key"
-
 #~ msgid "Facebook APP ID"
 #~ msgstr "Facebook APP ID"
 
@@ -524,9 +575,6 @@ msgstr "Loại bài viết"
 
 #~ msgid "reCAPTCHA Site Key"
 #~ msgstr "reCAPTCHA Site Key"
-
-#~ msgid "reCAPTCHA Secret Key"
-#~ msgstr "reCAPTCHA Secret Key"
 
 #~ msgid "Google Client ID"
 #~ msgstr "Google Client ID"
@@ -893,9 +941,6 @@ msgstr "Loại bài viết"
 #~ msgstr "Mẫu xe"
 
 #~ msgid "Manufacturers"
-#~ msgstr "Hãng xe"
-
-#~ msgid "Manufacturer"
 #~ msgstr "Hãng xe"
 
 #~ msgid "Locations"
@@ -1641,9 +1686,6 @@ msgstr "Loại bài viết"
 #~ msgid "Key"
 #~ msgstr "Mã"
 
-#~ msgid "Loading mirror..."
-#~ msgstr "Đang tải..."
-
 #~ msgid "RSS Feed"
 #~ msgstr "Dòng tin RSS"
 
@@ -1685,10 +1727,6 @@ msgstr "Loại bài viết"
 
 #~ msgid "Free"
 #~ msgstr "Miễn phí"
-
-#~ msgctxt "form add post"
-#~ msgid "Normal post"
-#~ msgstr "Bài viết thông thường"
 
 #~ msgctxt "form add post"
 #~ msgid "Special VIP post"

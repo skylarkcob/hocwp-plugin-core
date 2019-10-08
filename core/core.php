@@ -3,8 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class Post_Box_Core {
+class Auto_Fetch_Post_Core {
 	protected static $instance;
+	public $core_version = '1.0.0';
 
 	public $require_php_version = '5.6';
 	public $required_plugins;
@@ -28,7 +29,7 @@ class Post_Box_Core {
 
 	public $textdomain;
 
-	protected $option_name;
+	protected $option_name = '';
 	protected $option_page_url;
 	protected $labels;
 	protected $setting_args;
@@ -40,6 +41,7 @@ class Post_Box_Core {
 
 	public $sub_menu = true;
 	public $menu_icon = 'dashicons-admin-generic';
+	public $sub_menu_label = '';
 
 	public $one_term_taxonomies = array();
 
@@ -47,6 +49,8 @@ class Post_Box_Core {
 
 	public $date_format;
 	public $time_format;
+
+	public $user;
 
 	public function is_empty_string( $string ) {
 		return ( is_string( $string ) && empty( $string ) );
@@ -334,8 +338,6 @@ class Post_Box_Core {
 			$conn = $this->ftp_connect( $host, $user, $password, $port );
 
 			if ( false !== $conn ) {
-				$current_path = @ftp_pwd( $conn );
-
 				if ( ! empty( $directory ) ) {
 					$this->ftp_create_directory( $conn, $directory );
 				} else {
@@ -522,6 +524,182 @@ class Post_Box_Core {
 		}
 
 		return $result;
+	}
+
+	public function mysql_update( $table, $args = array() ) {
+		global $wpdb;
+
+		$defaults = array(
+			'set'   => '',
+			'where' => ''
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$set = $args['set'];
+
+		if ( empty( $set ) ) {
+			return false;
+		}
+
+		$where = $args['where'];
+
+		$sql = 'UPDATE ' . $table;
+		$sql .= ' SET ' . $set;
+
+		$sql .= ' WHERE 1 = 1';
+
+		if ( $this->array_has_value( $where ) ) {
+			$tmp = '';
+
+			foreach ( $where as $key => $value ) {
+				$tmp .= sprintf( " AND %s = '%s'", $key, $value );
+			}
+
+			$where = $tmp;
+		}
+
+		$where = trim( $where );
+		$sql .= ' ' . $where;
+		$sql = trim( $sql );
+
+		return $wpdb->query( $sql );
+	}
+
+	public function mysql_insert( $table, $args = array() ) {
+		global $wpdb;
+
+		$defaults = array(
+			'columns' => '',
+			'values'  => ''
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$columns = $args['columns'];
+		$values  = $args['values'];
+
+		if ( empty( $columns ) || empty( $values ) ) {
+			return false;
+		}
+
+		$sql = 'INSERT ' . 'INTO ' . $table;
+		$sql .= ' (' . $columns . ')';
+		$sql .= ' VALUES (' . $values . ')';
+
+		return $wpdb->query( $sql );
+	}
+
+	public function mysql_delete( $table, $args = array() ) {
+		global $wpdb;
+
+		$defaults = array(
+			'where' => ''
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$sql = 'DELETE ' . 'FROM ' . $table;
+		$sql .= ' WHERE 1 = 1';
+
+		$where = $args['where'];
+
+		if ( $this->array_has_value( $where ) ) {
+			$tmp = '';
+
+			foreach ( $where as $key => $value ) {
+				$tmp .= sprintf( " AND %s = '%s'", $key, $value );
+			}
+
+			$where = $tmp;
+		}
+
+		$where = trim( $where );
+		$sql .= ' ' . $where;
+		$sql = trim( $sql );
+
+		return $wpdb->query( $sql );
+	}
+
+	public function mysql_select( $table, $args = array() ) {
+		global $wpdb;
+
+		$defaults = array(
+			'select'   => '*',
+			'join'     => '',
+			'where'    => '',
+			'group_by' => '',
+			'having'   => '',
+			'order_by' => '',
+			'offset'   => '',
+			'limit'    => '',
+			'order'    => 'ASC',
+			'output'   => OBJECT
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$select   = $args['select'];
+		$join     = $args['join'];
+		$where    = $args['where'];
+		$group_by = $args['group_by'];
+		$having   = $args['having'];
+		$order_by = $args['order_by'];
+		$order    = $args['order'];
+		$offset   = $args['offset'];
+		$limit    = $args['limit'];
+
+		$sql = "SELECT $select";
+		$sql .= " FROM $table";
+
+		$join = trim( $join );
+		$sql .= ' ' . $join;
+		$sql = trim( $sql );
+
+		$sql .= ' WHERE 1 = 1';
+
+		if ( $this->array_has_value( $where ) ) {
+			$tmp = '';
+
+			foreach ( $where as $key => $value ) {
+				$tmp .= sprintf( " AND %s = '%s'", $key, $value );
+			}
+
+			$where = $tmp;
+		}
+
+		$where = trim( $where );
+		$sql .= ' ' . $where;
+		$sql = trim( $sql );
+
+		$group_by = trim( $group_by );
+		$sql .= ' ' . $group_by;
+		$sql = trim( $sql );
+
+		$having = trim( $having );
+		$sql .= ' ' . $having;
+		$sql = trim( $sql );
+
+		$order_by = trim( $order_by );
+
+		if ( ! empty( $order_by ) ) {
+			$sql .= ' ORDER BY ' . $order_by;
+			$sql = trim( $sql );
+
+			$order = trim( $order );
+			$order = strtoupper( $order );
+			$sql .= ' ' . $order;
+			$sql = trim( $sql );
+		}
+
+		if ( ! empty( $limit ) ) {
+			$limit  = absint( $limit );
+			$offset = absint( $offset );
+
+			$sql .= " LIMIT $offset, $limit";
+		}
+
+		return $wpdb->get_results( $sql, $args['output'] );
 	}
 
 	public function is_string_empty( $string ) {
@@ -954,12 +1132,36 @@ class Post_Box_Core {
 		return $this->base_url;
 	}
 
-	public function get_current_url() {
-		$base_url = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'];
+	public function get_current_url( $with_params = true ) {
+		$url = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'];
 
-		$url = $base_url . $_SERVER['REQUEST_URI'];
+		if ( $with_params ) {
+			$url .= $_SERVER['REQUEST_URI'];
+		}
 
 		return $url;
+	}
+
+	public function get_user_ip( $data = array() ) {
+		if ( empty( $data ) ) {
+			$data = $_SERVER;
+		}
+
+		if ( empty( $data ) ) {
+			return '';
+		}
+
+		if ( array_key_exists( 'HTTP_X_FORWARDED_FOR', $data ) && ! empty( $data['HTTP_X_FORWARDED_FOR'] ) ) {
+			if ( strpos( $data['HTTP_X_FORWARDED_FOR'], ',' ) > 0 ) {
+				$addr = explode( ',', $data['HTTP_X_FORWARDED_FOR'] );
+
+				return trim( $addr[0] );
+			} else {
+				return $data['HTTP_X_FORWARDED_FOR'];
+			}
+		} else {
+			return $data['REMOTE_ADDR'];
+		}
 	}
 
 	public function get_plugin_data() {
@@ -1040,7 +1242,7 @@ class Post_Box_Core {
 		}
 		?>
 		<script>
-			jQuery(document).ready(function ($) {
+			jQuery(document).ready(function () {
 				(function () {
 					if ("undefine" != typeof toastr) {
 						toastr.options = {
@@ -1181,7 +1383,7 @@ class Post_Box_Core {
 		if ( isset( $this->labels['options_page']['page_title'] ) ) {
 			$page_title = $this->labels['options_page']['page_title'];
 
-			if ( ! empty( $page_title ) ) {
+			if ( ! empty( $page_title ) && ! empty( $this->option_name ) ) {
 				$menu_title = isset( $this->labels['options_page']['menu_title'] ) ? $this->labels['options_page']['menu_title'] : $page_title;
 
 				if ( ! is_callable( $this->options_page_callback ) ) {
@@ -1193,6 +1395,14 @@ class Post_Box_Core {
 				} else {
 					add_menu_page( $page_title, $menu_title, 'manage_options', $this->option_name, $this->options_page_callback, $this->menu_icon );
 					add_submenu_page( $this->option_name, $page_title, $menu_title, 'manage_options', $this->option_name, $this->options_page_callback );
+
+					if ( ! empty( $this->sub_menu_label ) ) {
+						global $submenu;
+
+						if ( is_array( $submenu ) && isset( $submenu[ $this->option_name ][0][0] ) ) {
+							$submenu[ $this->option_name ][0][0] = $this->sub_menu_label;
+						}
+					}
 				}
 			}
 		}
@@ -1366,6 +1576,10 @@ class Post_Box_Core {
 			if ( empty( $label ) ) {
 				$label     = isset( $args['description'] ) ? $args['description'] : '';
 				$show_desc = false;
+			}
+
+			if ( empty( $label ) ) {
+				$label = isset( $args['text'] ) ? $args['text'] : '';
 			}
 
 			$field_value = isset( $args['field_value'] ) ? $args['field_value'] : 1;
@@ -1813,7 +2027,9 @@ class Post_Box_Core {
 		$this->textdomain = $this->get_plugin_info( 'TextDomain' );
 		$this->version    = $this->get_plugin_info( 'Version' );
 
-		$this->set_option_name( basename( $this->base_dir ) );
+		if ( null !== $this->option_name ) {
+			$this->set_option_name( basename( $this->base_dir ) );
+		}
 
 		$this->setting_tabs = array();
 
@@ -1858,6 +2074,14 @@ class Post_Box_Core {
 		add_action( 'admin_footer', array( $this, 'created_by_log' ) );
 		add_action( 'wp_footer', array( $this, 'created_by_log' ) );
 		add_action( 'login_footer', array( $this, 'created_by_log' ) );
+
+		if ( $this->doing_ajax ) {
+			$path = dirname( dirname( __FILE__ ) ) . '/ajax.php';
+
+			if ( file_exists( $path ) ) {
+				require_once $path;
+			}
+		}
 	}
 
 	public function init_action() {
@@ -1876,8 +2100,6 @@ class Post_Box_Core {
 
 		$data   = get_plugin_data( $this->plugin_file );
 		$plugin = '';
-
-		$active_plugins = wp_get_active_and_valid_plugins();
 
 		foreach ( $this->required_plugins as $rp ) {
 			if ( ! is_plugin_active( $rp ) ) {
@@ -1943,6 +2165,73 @@ class Post_Box_Core {
 		}
 	}
 
+	public function create_database_table( $table_name, $sql_column ) {
+		if ( false !== strpos( $sql_column, 'CREATE TABLE' ) || false !== strpos( $sql_column, 'create table' ) ) {
+			_doing_it_wrong( __FUNCTION__, __( 'The <strong>$sql_column</strong> argument just only contains MySQL query inside (), it isn\'t full MySQL query.', $this->textdomain ), '1.0.0' );
+
+			return;
+		}
+
+		global $wpdb;
+
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
+			$charset_collate = '';
+
+			if ( ! empty( $wpdb->charset ) ) {
+				$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
+			}
+
+			if ( ! empty( $wpdb->collate ) ) {
+				$charset_collate .= " COLLATE $wpdb->collate";
+			}
+
+			$sql = 'CREATE ' . 'TABLE ';
+			$sql .= "$table_name ( $sql_column ) $charset_collate;\n";
+
+			if ( ! function_exists( 'dbDelta' ) ) {
+				load_template( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			}
+
+			dbDelta( $sql );
+		}
+	}
+
+	public function is_database_table_exists( $table_name ) {
+		global $wpdb;
+
+		if ( ! Cloak_URI()->string_contain( $table_name, $wpdb->prefix ) ) {
+			$table_name = $wpdb->prefix . $table_name;
+		}
+
+		$result = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" );
+
+		if ( empty( $result ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function get_ajax_url() {
+		return apply_filters( 'plugin_' . $this->option_name . '_ajax_url', admin_url( 'admin-ajax.php' ) );
+	}
+
+	public function date_i18n( $date, $format = '' ) {
+		if ( ! is_numeric( $date ) ) {
+			$date = strtotime( $date );
+		}
+
+		if ( empty( $format ) ) {
+			$format = sprintf( '%s %s', $this->date_format, $this->time_format );
+		}
+
+		$now = new DateTime();
+		$now->setTimestamp( $date );
+		$now->setTimezone( new DateTimeZone( get_option( 'timezone_string' ) ) );
+
+		return $now->format( $format );
+	}
+
 	public function __construct() {
 		$this->user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
 
@@ -1954,6 +2243,8 @@ class Post_Box_Core {
 
 		$this->date_format = get_option( 'date_format' );
 		$this->time_format = get_option( 'time_format' );
+
+		$this->user = wp_get_current_user();
 
 		add_action( 'plugins_loaded', array( $this, 'run_init_action' ), 11 );
 	}
