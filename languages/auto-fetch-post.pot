@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SB Core\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/tags/_s\n"
-"POT-Creation-Date: 2019-10-07 21:34+0700\n"
+"POT-Creation-Date: 2019-10-21 12:36+0700\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,83 +24,111 @@ msgstr ""
 msgid "Invalid Google API Key."
 msgstr ""
 
-#: core/core.php:1355
+#: core/core.php:1472
 msgid "Settings"
 msgstr ""
 
-#: core/core.php:1632
+#: core/core.php:1749
 msgid "Pixels"
 msgstr ""
 
-#: core/core.php:1764
+#: core/core.php:1881
 msgid "-- Choose post --"
 msgstr ""
 
-#: core/core.php:1768
+#: core/core.php:1885
 #, php-format
 msgid "-- Choose %s --"
 msgstr ""
 
-#: core/core.php:1794
+#: core/core.php:1911
 msgid "Remove"
 msgstr ""
 
-#: core/core.php:1795
+#: core/core.php:1912
 msgid "Add"
 msgstr ""
 
-#: core/core.php:1838
+#: core/core.php:1955
 msgid "Insert Media"
 msgstr ""
 
-#: core/core.php:1941
+#: core/core.php:2058
 #, php-format
 msgid "Plugin %s is created by %s"
 msgstr ""
 
-#: core/core.php:1950
+#: core/core.php:2067
 #, php-format
 msgid "<strong>Error:</strong> Plugin %s requires PHP version at least %s, please upgrade it or contact your hosting provider."
 msgstr ""
 
-#: core/core.php:1998
+#: core/core.php:2115
 #, php-format
 msgid "<strong>Warning:</strong> You can choose one term only for taxonomy %s."
 msgstr ""
 
-#: core/core.php:2162
+#: core/core.php:2279
 #, php-format
 msgid "<strong>%s:</strong> You must install and activate thesse required plugins: %s."
 msgstr ""
 
-#: core/core.php:2170
+#: core/core.php:2287
 msgid "The <strong>$sql_column</strong> argument just only contains MySQL query inside (), it isn't full MySQL query."
 msgstr ""
 
-#: main.php:47
-msgid "AJAX Load More"
-msgstr ""
-
-#: main.php:75
-msgid "No more posts"
-msgstr ""
-
-#: main.php:77 main.php:93
-msgid "Loading more"
-msgstr ""
-
-#: main.php:92 main.php:93
+#: main.php:758 main.php:759
 msgid "Load more"
 msgstr ""
 
-#: main.php:103
-msgid "Add body class you want to skip load more button. Each class separate by commas."
+#: main.php:759
+msgid "Loading more"
 msgstr ""
 
-#: main.php:106
-msgid "Skip Body Class"
+#: main.php:792
+msgid "The number of posts will be fetched on each process."
 msgstr ""
 
-#: main.php:112
-msgid "Auto Load Offset"
+#: main.php:795
+msgid "Posts Number"
+msgstr ""
+
+#: main.php:797
+msgid "Interval in seconds allows the web page to automatically reload when the user is inactive."
+msgstr ""
+
+#: main.php:799
+msgid "Reload Interval"
+msgstr ""
+
+#: main.php:801
+msgid "Time interval in seconds for the site to automatically fetch posts."
+msgstr ""
+
+#: main.php:803
+msgid "Fetch Posts Interval"
+msgstr ""
+
+#: main.php:807
+msgid "The default post status for new post."
+msgstr ""
+
+#: main.php:811
+msgid "Default Post Status"
+msgstr ""
+
+#: main.php:825
+msgid "The default category for posts which auto fetched."
+msgstr ""
+
+#: main.php:830
+msgid "Default Category"
+msgstr ""
+
+#: main.php:834
+msgid "Prepend text or custom HTML to before post content."
+msgstr ""
+
+#: main.php:837
+msgid "Add Before Content"
 msgstr ""

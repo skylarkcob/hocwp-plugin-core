@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SB Core\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/tags/_s\n"
-"POT-Creation-Date: 2019-10-07 21:34+0700\n"
-"PO-Revision-Date: 2019-10-07 21:34+0700\n"
+"POT-Creation-Date: 2019-10-21 12:36+0700\n"
+"PO-Revision-Date: 2019-10-21 12:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: HocWP Team - hocwp.net@gmail.com - www.hocwp.net\n"
 "Language: vi\n"
@@ -25,41 +25,41 @@ msgstr ""
 msgid "Invalid Google API Key."
 msgstr "Mã Google API Key không hợp lệ."
 
-#: core/core.php:1355
+#: core/core.php:1472
 msgid "Settings"
 msgstr "Cài đặt"
 
-#: core/core.php:1632
+#: core/core.php:1749
 msgid "Pixels"
 msgstr "Điểm ảnh"
 
-#: core/core.php:1764
+#: core/core.php:1881
 msgid "-- Choose post --"
 msgstr "-- Chọn bài viết --"
 
-#: core/core.php:1768
+#: core/core.php:1885
 #, php-format
 msgid "-- Choose %s --"
 msgstr "-- Chọn %s --"
 
-#: core/core.php:1794
+#: core/core.php:1911
 msgid "Remove"
 msgstr "Xóa"
 
-#: core/core.php:1795
+#: core/core.php:1912
 msgid "Add"
 msgstr "Thêm"
 
-#: core/core.php:1838
+#: core/core.php:1955
 msgid "Insert Media"
 msgstr "Thêm tập tin"
 
-#: core/core.php:1941
+#: core/core.php:2058
 #, php-format
 msgid "Plugin %s is created by %s"
 msgstr "Plugin %s được tạo bởi %s"
 
-#: core/core.php:1950
+#: core/core.php:2067
 #, php-format
 msgid ""
 "<strong>Error:</strong> Plugin %s requires PHP version at least %s, please "
@@ -68,14 +68,14 @@ msgstr ""
 "<strong>Lỗi:</strong> Plugin %s yêu cầu phiên bản PHP từ %s, xin vui lòng "
 "nâng cấp hoặc liên hệ với nhà cung cấp hosting."
 
-#: core/core.php:1998
+#: core/core.php:2115
 #, php-format
 msgid "<strong>Warning:</strong> You can choose one term only for taxonomy %s."
 msgstr ""
 "<strong>Cảnh báo:</strong> Bạn chỉ có thể chọn một mục duy nhất cho taxonomy "
 "%s."
 
-#: core/core.php:2162
+#: core/core.php:2279
 #, php-format
 msgid ""
 "<strong>%s:</strong> You must install and activate thesse required plugins: "
@@ -83,7 +83,7 @@ msgid ""
 msgstr ""
 "<strong>%s:</strong> Bạn phải cài đặt và kích hoạt các plugin bắt buộc: %s."
 
-#: core/core.php:2170
+#: core/core.php:2287
 msgid ""
 "The <strong>$sql_column</strong> argument just only contains MySQL query "
 "inside (), it isn't full MySQL query."
@@ -91,37 +91,84 @@ msgstr ""
 "Tham số <strong>$sql_column</strong> chỉ chứa truy vấn MySQL bên trong ngoặc "
 "đơn (), chứ không phải chứa câu truy vấn MySQL đầy đủ."
 
-#: main.php:47
-msgid "AJAX Load More"
-msgstr "Tải thêm AJAX"
-
-#: main.php:75
-msgid "No more posts"
-msgstr "Không còn bài viết"
-
-#: main.php:77 main.php:93
-msgid "Loading more"
-msgstr "Đang tải thêm"
-
-#: main.php:92 main.php:93
+#: main.php:758 main.php:759
 msgid "Load more"
 msgstr "Tải thêm"
 
-#: main.php:103
+#: main.php:759
+msgid "Loading more"
+msgstr "Đang tải thêm"
+
+#: main.php:792
+msgid "The number of posts will be fetched on each process."
+msgstr "Số bài viết sẽ được lấy cho mỗi lần chạy."
+
+#: main.php:795
+msgid "Posts Number"
+msgstr "Số bài viết"
+
+#: main.php:797
 msgid ""
-"Add body class you want to skip load more button. Each class separate by "
-"commas."
+"Interval in seconds allows the web page to automatically reload when the "
+"user is inactive."
 msgstr ""
-"Thêm thuộc tính class của thẻ body mà bạn muốn bỏ qua nút tải thêm. Mỗi "
-"class cách nhau bởi dấu phẩy."
+"Khoảng thời gian bằng giây để trang web tự động tải lại trang khi người dùng "
+"không hoạt động."
 
-#: main.php:106
-msgid "Skip Body Class"
-msgstr "Bỏ qua body class"
+#: main.php:799
+msgid "Reload Interval"
+msgstr "Khoảng thời gian tải lại trang"
 
-#: main.php:112
-msgid "Auto Load Offset"
-msgstr "Tự động tải offset"
+#: main.php:801
+msgid "Time interval in seconds for the site to automatically fetch posts."
+msgstr "Khoảng thời gian bằng giây để trang web tự động lấy bài viết."
+
+#: main.php:803
+msgid "Fetch Posts Interval"
+msgstr "Khoảng thời gian lấy bài viết"
+
+#: main.php:807
+msgid "The default post status for new post."
+msgstr "Trạng thái mặc định cho bài viết mới."
+
+#: main.php:811
+msgid "Default Post Status"
+msgstr "Trạng thái bài viết mặc định"
+
+#: main.php:825
+msgid "The default category for posts which auto fetched."
+msgstr "Chuyên mục mặc định cho các bài viết được lấy tự động."
+
+#: main.php:830
+msgid "Default Category"
+msgstr "Chuyên mục mặc định"
+
+#: main.php:834
+msgid "Prepend text or custom HTML to before post content."
+msgstr "Thêm văn bản hoặc HTML tùy chỉnh vào trước nội dung bài viết."
+
+#: main.php:837
+msgid "Add Before Content"
+msgstr "Thêm vào trước nội dung"
+
+#~ msgid "AJAX Load More"
+#~ msgstr "Tải thêm AJAX"
+
+#~ msgid "No more posts"
+#~ msgstr "Không còn bài viết"
+
+#~ msgid ""
+#~ "Add body class you want to skip load more button. Each class separate by "
+#~ "commas."
+#~ msgstr ""
+#~ "Thêm thuộc tính class của thẻ body mà bạn muốn bỏ qua nút tải thêm. Mỗi "
+#~ "class cách nhau bởi dấu phẩy."
+
+#~ msgid "Skip Body Class"
+#~ msgstr "Bỏ qua body class"
+
+#~ msgid "Auto Load Offset"
+#~ msgstr "Tự động tải offset"
 
 #~ msgid "User ID"
 #~ msgstr "ID người dùng"
@@ -149,9 +196,6 @@ msgstr "Tự động tải offset"
 
 #~ msgid "Contact for price"
 #~ msgstr "Giá liên hệ"
-
-#~ msgid "Post Number"
-#~ msgstr "Số bài viết"
 
 #~ msgid "Post Column"
 #~ msgstr "Số cột bài viết"
@@ -233,9 +277,6 @@ msgstr "Tự động tải offset"
 
 #~ msgid "Title:"
 #~ msgstr "Tiêu đề:"
-
-#~ msgid "Time Interval:"
-#~ msgstr "Khoảng thời gian:"
 
 #~ msgid "Sub Video Title Length:"
 #~ msgstr "Độ dài tiêu đề video phụ:"
@@ -350,9 +391,6 @@ msgstr "Tự động tải offset"
 
 #~ msgid "Add New"
 #~ msgstr "Thêm mới"
-
-#~ msgid "Add New Contest"
-#~ msgstr "Thêm cuộc thi mới"
 
 #~ msgid "Contest Attributes"
 #~ msgstr "Thuộc tính cuộc thi"
@@ -1069,9 +1107,6 @@ msgstr "Tự động tải offset"
 #~ msgid "Each poll option in new line."
 #~ msgstr "Mỗi bình chọn nằm trên một dòng."
 
-#~ msgid "Number of poll options to show on each post."
-#~ msgstr "Số lượng bình chọn hiển thị trên mỗi bài viết."
-
 #~ msgid "Sign up with your Google account"
 #~ msgstr "Đăng ký bằng tài khoản Google"
 
@@ -1565,9 +1600,6 @@ msgstr "Tự động tải offset"
 #~ msgid "News Categories"
 #~ msgstr "Chuyên mục tin tức"
 
-#~ msgid "News Category"
-#~ msgstr "Chuyên mục tin tức"
-
 #~ msgid "News Tags"
 #~ msgstr "Thẻ tin tức"
 
@@ -1612,9 +1644,6 @@ msgstr "Tự động tải offset"
 
 #~ msgid "Only Single"
 #~ msgstr "Chỉ trang xem bài viết"
-
-#~ msgid "Default Latitude"
-#~ msgstr "Vĩ độ mặc định"
 
 #~ msgid "Default Longitude"
 #~ msgstr "Kinh độ mặc định"

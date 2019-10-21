@@ -526,6 +526,36 @@ class Auto_Fetch_Post_Core {
 		return $result;
 	}
 
+	public function get_url_from_string( $string, $domain = '' ) {
+		preg_match_all( '#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $matches );
+
+		$urls = $matches[0];
+
+		if ( ! empty( $domain ) ) {
+			$dom = new DOMDocument( '1.0', 'UTF-8' );
+
+			@$dom->loadHTML( '<?xml version="1.0" encoding="UTF-8"?>' . $string );
+
+			$links = $dom->getElementsByTagName( 'a' );
+
+			$abs = array();
+
+			foreach ( $links as $link ) {
+				$href = $link->getAttribute( 'href' );
+
+				if ( false === strpos( $href, 'http' ) ) {
+					$href  = ltrim( $href, '/' );
+					$href  = trailingslashit( $domain ) . $href;
+					$abs[] = $href;
+				}
+			}
+
+			$urls = array_merge( $urls, $abs );
+		}
+
+		return $urls;
+	}
+
 	public function mysql_update( $table, $args = array() ) {
 		global $wpdb;
 
@@ -784,12 +814,18 @@ class Auto_Fetch_Post_Core {
 		return $result;
 	}
 
-	public function get_media_id_by_url( $url ) {
+	public function get_media_id_by_url( $url, $path = false ) {
 		global $wpdb;
 
-		$sql = 'SELECT ID';
-		$sql .= ' FROM ' . $wpdb->posts;
-		$sql .= " WHERE guid='%s'";
+		if ( $path ) {
+			$sql = 'SELECT post_id';
+			$sql .= ' FROM ' . $wpdb->postmeta;
+			$sql .= " WHERE meta_value LIKE '%%s'";
+		} else {
+			$sql = 'SELECT ID';
+			$sql .= ' FROM ' . $wpdb->posts;
+			$sql .= " WHERE guid='%s'";
+		}
 
 		$sql = $wpdb->prepare( $sql, $url );
 
@@ -824,9 +860,39 @@ class Auto_Fetch_Post_Core {
 		return false;
 	}
 
-	public function download_image( $url, $name = '' ) {
+	public function download_image( $url, $name = '', $check_exists = false ) {
 		if ( ! $url || empty ( $url ) ) {
 			return false;
+		}
+
+		global $wpdb;
+
+		$id = '';
+
+		$args = array(
+			'select' => 'post_id',
+			'where'  => array(
+				'meta_key'   => 'source_url',
+				'meta_value' => $url
+			)
+		);
+
+		$results = $this->mysql_select( $wpdb->postmeta, $args );
+
+		$info = pathinfo( $url );
+
+		if ( $this->array_has_value( $results ) ) {
+			$first = $results[0];
+
+			if ( isset( $first->post_id ) ) {
+				$attachment = get_post( $first->post_id );
+
+				if ( $attachment instanceof WP_Post && 'attachment' == $attachment->post_type ) {
+					if ( $attachment->post_title == $info['filename'] ) {
+						return $attachment->ID;
+					}
+				}
+			}
 		}
 
 		if ( ! function_exists( 'download_url' ) ) {
@@ -850,24 +916,53 @@ class Auto_Fetch_Post_Core {
 		}
 
 		if ( $name ) {
+			$info = pathinfo( $name );
+
+			if ( ! isset( $info['extension'] ) || empty( $info['extension'] ) ) {
+				$name .= '.jpeg';
+			}
+
 			$file_array['name'] = $name;
 		} else {
-			preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', $file_array['tmp_name'], $matches );
+			if ( $check_exists ) {
+				$name = 'downloaded-';
+				$name .= md5( $url );
+				$name .= '.jpeg';
 
-			if ( ! empty( $matches ) ) {
-				$file_array['name'] = basename( $matches[0] );
-			} else {
-				$file_array['name'] = uniqid( 'downloaded-' ) . '.jpeg';
+				if ( file_exists( $name ) ) {
+					$id = $this->get_media_id_by_url( $name, true );
+				}
+			}
+
+			if ( ! $this->is_media_file_exists( $id ) ) {
+				preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', $file_array['tmp_name'], $matches );
+
+				if ( ! empty( $matches ) ) {
+					$file_array['name'] = basename( $matches[0] );
+				} else {
+					$file_array['name'] = uniqid( 'downloaded-' ) . '.jpeg';
+				}
 			}
 		}
 
-		$id = media_handle_sideload( $file_array, 0 );
+		if ( ! $this->is_media_file_exists( $id ) ) {
+			$id = media_handle_sideload( $file_array, 0 );
+		}
 
 		if ( is_wp_error( $id ) ) {
 			@unlink( $file_array['tmp_name'] );
 
 			return false;
 		}
+
+		$data = array(
+			'ID'         => $id,
+			'post_title' => $info['filename']
+		);
+
+		wp_update_post( $data );
+
+		update_post_meta( $id, 'source_url', $url );
 
 		return $id;
 	}
@@ -990,8 +1085,8 @@ class Auto_Fetch_Post_Core {
 	}
 
 	public function get_first_image_source( $content ) {
-		$doc = new DOMDocument();
-		@$doc->loadHTML( $content );
+		$doc = new DOMDocument( '1.0', 'UTF-8' );
+		@$doc->loadHTML( '<?xml version="1.0" encoding="UTF-8"?>' . $content );
 		$xpath = new DOMXPath( $doc );
 		$src   = $xpath->evaluate( 'string(//img/@src)' );
 		unset( $doc, $xpath );
@@ -1065,9 +1160,31 @@ class Auto_Fetch_Post_Core {
 
 		if ( $root && ! $this->is_IP( $result ) ) {
 			$tmp = explode( '.', $result );
+			$tmp = array_filter( $tmp );
 
-			while ( count( $tmp ) > 2 ) {
+			$count = count( $tmp );
+
+			while ( $count > 2 ) {
+				if ( 3 == $count ) {
+					$ltd = $tmp[1];
+
+					$skip = array(
+						'com',
+						'net',
+						'org',
+						'info',
+						'co',
+						'blog',
+						'dev'
+					);
+
+					if ( in_array( $ltd, $skip ) ) {
+						break;
+					}
+				}
+
 				array_shift( $tmp );
+				$count = count( $tmp );
 			}
 
 			$result = implode( '.', $tmp );
@@ -1703,7 +1820,7 @@ class Auto_Fetch_Post_Core {
 
 					$selected = false;
 
-					if ( $value === $current || ( is_array( $value ) && in_array( $current, $value ) ) ) {
+					if ( $value === $current || ( is_array( $value ) && in_array( $current, $value ) ) || ( ! empty( $current ) && is_numeric( $value ) && $value == $current ) ) {
 						$selected = true;
 					}
 					?>
